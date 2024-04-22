@@ -17,7 +17,7 @@ class Form extends Component {
     const { listStudent, keyword } = this.props;
 
     const studentFilter = listStudent?.filter((student) => {
-      return student.hoTen.toLowercase().indexOf(keyword.toLowercase()) !== -1;
+      return student.hoTen.toLowerCase().indexOf(keyword.toLowerCase()) !== -1;
     });
 
     return studentFilter?.map((student, index) => {
