@@ -1,15 +1,27 @@
-import { type } from "@testing-library/user-event/dist/type";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-
+import {
+  actDeleteStudent,
+  actEdiStudent,
+  actSearch,
+  actSubmitStudent,
+} from "../store/action";
 class Form extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      maSV: "",
-      hoTen: "",
-      phone: "",
-      email: "",
+      student: {
+        maSV: "",
+        hoTen: "",
+        phone: "",
+        email: "",
+      },
+      error: {
+        maSV: "",
+        hoTen: "",
+        phone: "",
+        email: "",
+      },
     };
   }
 
@@ -52,15 +64,37 @@ class Form extends Component {
 
   handleInput = (event) => {
     const { name, value } = event.target;
-    this.setState({ [name]: value }, () => {
-      // console.log(this.state);
-    });
+    this.setState({ [name]: value });
   };
 
   handleSubmitUser = (event) => {
     event.preventDefault();
-    console.log(this.state);
-    this.props.submit(this.state);
+    const { maSV, hoTen, phone, email } = this.state;
+    const errors = {};
+
+    // Kiểm tra điều kiện cho từng trường và cập nhật state error nếu không hợp lệ
+    if (!maSV.trim()) {
+      errors.maSV = "Vui lòng nhập mã sinh viên";
+    }
+    if (!hoTen.trim()) {
+      errors.hoTen = "Vui lòng nhập họ tên sinh viên";
+    }
+    if (!phone.trim()) {
+      errors.phone = "Vui lòng nhập số điện thoại";
+    }
+    if (!email.trim()) {
+      errors.email = "Vui lòng nhập địa chỉ email";
+    }
+
+    // Nếu có lỗi, cập nhật state error và không dispatch action submit
+    if (Object.keys(errors).length > 0) {
+      this.setState({ error: errors });
+    } else {
+      // Nếu không có lỗi, dispatch action submit
+      this.props.submit(this.state);
+      // Reset state error
+      this.setState({ error: {} });
+    }
   };
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -83,7 +117,6 @@ class Form extends Component {
   }
 
   handleOnchange = (event) => {
-    console.log(event.target.value);
     this.props.searchStudent(event.target.value);
   };
 
@@ -107,6 +140,9 @@ class Form extends Component {
               onChange={this.handleInput}
               value={this.state.maSV}
             />
+            {this.state.error.maSV && (
+              <span className="text-danger">{this.state.error.maSV}</span>
+            )}
           </div>
           <div className="formgroup col-md-6">
             <p htmlFor="hoTen">Họ tên:</p>
@@ -118,6 +154,9 @@ class Form extends Component {
               onChange={this.handleInput}
               value={this.state.hoTen}
             />
+            {this.state.error.hoTen && (
+              <span className="text-danger">{this.state.error.hoTen}</span>
+            )}
           </div>
           <div className="formgroup col-md-6">
             <p htmlFor="phone">Số điện thoại:</p>
@@ -129,17 +168,23 @@ class Form extends Component {
               onChange={this.handleInput}
               value={this.state.phone}
             />
+            {this.state.error.phone && (
+              <span className="text-danger">{this.state.error.phone}</span>
+            )}
           </div>
           <div className="formgroup col-md-6">
             <p htmlFor="email">Email:</p>
             <input
-              type="email"
+              type="text"
               className="form-control"
               id="email"
               name="email"
               onChange={this.handleInput}
               value={this.state.email}
             />
+            {this.state.error.email && (
+              <span className="text-danger">{this.state.error.email}</span>
+            )}
           </div>
 
           <button type="submit" className="btn btn-success mt-3">
@@ -184,39 +229,19 @@ class Form extends Component {
 const mapDispatchToProps = (dispatch) => {
   return {
     submit: (student) => {
-      const action = {
-        type: "SUBMIT_STUDENT",
-        payload: student,
-      };
-      dispatch(action);
+      dispatch(actSubmitStudent(student));
     },
     deleteStudent: (maSV) => {
-      const action = {
-        type: "DELETE_STUDENT",
-        payload: maSV,
-      };
-      dispatch(action);
+      dispatch(actDeleteStudent(maSV));
     },
-    edit: (student, event) => {
-      const action = {
-        type: "EDIT_STUDENT",
-        payload: student,
-      };
-      dispatch(action);
+    edit: (student) => {
+      dispatch(actEdiStudent(student));
     },
     resetEdit: () => {
-      const action = {
-        type: "EDIT_STUDENT",
-        payload: null,
-      };
-      dispatch(action);
+      dispatch(actEdiStudent(null));
     },
     searchStudent: (keyword) => {
-      const action = {
-        type: "KEYWORD_STUDENT",
-        payload: keyword,
-      };
-      dispatch(action);
+      dispatch(actSearch(keyword));
     },
   };
 };
